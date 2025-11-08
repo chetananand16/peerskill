@@ -2,7 +2,12 @@ const path = require('path');
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'skillswap.db');
+// Check for the Render environment variable and use the persistent disk path
+const DB_DIR = process.env.RENDER_DISK_MOUNT_PATH || path.join(__dirname, '..', 'data');
+const DB_PATH = path.join(DB_DIR, 'skillswap.db');
+// Ensure the database directory exists locally (Render creates it automatically)
+// NOTE: We don't need fs.mkdirSync here as it will be run in initDb
+
 let db;
 
 function initDb() {
