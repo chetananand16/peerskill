@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSwap - Peer-to-Peer Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none; }
+        .chat-window::-webkit-scrollbar { width: 6px; }
+        .chat-window::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 3px; }
+        .chat-window::-webkit-scrollbar-track { background-color: #e5e7eb; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+    <div class="min-h-screen">
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <nav class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-indigo-600" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20Zm0-12v4m0 4h.01M12 6h.01"/></svg>
+                        <span class="ml-2 text-2xl font-bold text-indigo-600">SkillSwap</span>
+                    </div>
+                    <div class="hidden md:flex md:items-center md:space-x-8">
+                        <a href="#how-it-works" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">How It Works</a>
+                        <a href="#" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Browse Skills</a>
+                        <button onclick="showPage('auth-page')" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Log In</button>
+                        <button onclick="showPage('auth-page')" class="ml-4 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                            Sign Up
+                        </button>
+                    </div>
+                    <div class="md:hidden">
+                        <button class="text-gray-500 hover:text-gray-700">
+                            <i data-lucide="menu" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main id="landing-page" class="page-content">
+            <div class="relative bg-white overflow-hidden">
+                <div class="container mx-auto max-w-7xl">
+                    <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                        <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                            <div class="sm:text-center lg:text-left">
+                                <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                                    <span class="block xl:inline">Teach what you know.</span>
+                                    <span class="block text-indigo-600 xl:inline">Learn what you don't.</span>
+                                </h1>
+                                <p class="mt-3 text-base text-gray-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                                    The global peer-to-peer skill exchange. Forget expensive courses and awkward forums. Find a partner and exchange expertise, one-on-one.
+                                </p>
+                                <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                                    <div class="rounded-md shadow">
+                                        <button onclick="showPage('auth-page')" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10">
+                                            Get Started
+                                        </button>
+                                    </div>
+                                    <div class="mt-3 sm:mt-0 sm:ml-3">
+                                        <a href="#how-it-works" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 md:py-4 md:text-lg md:px-10">
+                                            How It Works
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+                <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+                    <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80" alt="Team collaborating">
+                </div>
+            </div>
+
+            <section id="how-it-works" class="py-20 bg-gray-50">
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="text-center">
+                        <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">How It Works</h2>
+                        <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                            A new way to learn and grow.
+                        </p>
+                    </div>
+                    <div class="mt-16 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="flex flex-col items-center text-center p-6 bg-white rounded-lg shadow-lg">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                <i data-lucide="user-plus"></i>
+                            </div>
+                            <h3 class="mt-5 text-xl font-bold text-gray-900">1. Offer & Want Profile</h3>
+                            <p class="mt-2 text-base text-gray-600">
+                                Tell us one skill you've mastered (your "Offer") and one skill you want to learn (your "Want").
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center text-center p-6 bg-white rounded-lg shadow-lg">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                <i data-lucide="users-round"></i>
+                            </div>
+                            <h3 class="mt-5 text-xl font-bold text-gray-900">2. Get "Perfect Match"</h3>
+                            <p class="mt-2 text-base text-gray-600">
+                                Our backend finds a user who wants to learn your skill and can teach you their skill.
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center text-center p-6 bg-white rounded-lg shadow-lg">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                <i data-lucide="layout-dashboard"></i>
+                            </div>
+                            <h3 class="mt-5 text-xl font-bold text-gray-900">3. In-Platform Classroom</h3>
+                            <p class="mt-2 text-base text-gray-600">
+                                Accept the match and join a shared workspace with video, chat, and a collaborative whiteboard.
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center text-center p-6 bg-white rounded-lg shadow-lg">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                                <i data-lucide="star"></i>
+                            </div>
+                            <h3 class="mt-5 text-xl font-bold text-gray-900">4. Build "Trust Score"</h3>
+                            <p class="mt-2 text-base text-gray-600">
+                                After the session, partners must mutually review the exchange to build their reputation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <main id="auth-page" class="page-content hidden">
+            <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+                    <div>
+                        <div class="flex border-b border-gray-200">
+                            <button id="login-tab-button" onclick="showAuthTab('login')" class="flex-1 py-3 text-center font-medium text-indigo-600 border-b-2 border-indigo-600">
+                                Log In
+                            </button>
+                            <button id="signup-tab-button" onclick="showAuthTab('signup')" class="flex-1 py-3 text-center font-medium text-gray-500 hover:text-gray-700">
+                                Sign Up
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="login-form" class="mt-8 space-y-6" action="#" method="POST" onsubmit="event.preventDefault(); loginUser();">
+                        <h2 class="text-center text-2xl font-bold text-gray-900">Welcome back!</h2>
+                        <div class="rounded-md shadow-sm -space-y-px">
+                            <div>
+                                <label for="login-email" class="sr-only">Email address</label>
+                                <input id="login-email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-t-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Email address">
+                            </div>
+                            <div>
+                                <label for="login-password" class="sr-only">Password</label>
+                                <input id="login-password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Password">
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Log In
+                            </button>
+                        </div>
+                    </form>
+
+                    <form id="signup-form" class="mt-8 space-y-6 hidden" action="#" method="POST" onsubmit="event.preventDefault(); signupUser();">
+                        <h2 class="text-center text-2xl font-bold text-gray-900">Create your account</h2>
+                        <div class="rounded-md shadow-sm -space-y-px">
+                            <div>
+                                <label for="signup-email" class="sr-only">Email address</label>
+                                <input id="signup-email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-t-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Email address">
+                            </div>
+                            <div>
+                                <label for="signup-password" class="sr-only">Password</label>
+                                <input id="signup-password" name="password" type="password" autocomplete="new-password" required class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Password">
+                            </div>
+                            <div>
+                                <label for="signup-confirm-password" class="sr-only">Confirm Password</label>
+                                <input id="signup-confirm-password" name="confirm-password" type="password" autocomplete="new-password" required class="appearance-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Confirm Password">
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Create Account & Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <main id="onboarding-page" class="page-content hidden">
+            <div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+                    <div>
+                        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                            Create your Skill Profile
+                        </h2>
+                        <p class="mt-2 text-center text-sm text-gray-600">
+                            What can you teach? What do you want to learn?
+                        </p>
+                    </div>
+                    <form class="mt-8 space-y-6" action="#" method="POST" onsubmit="event.preventDefault(); submitProfile();">
+                        <div class="rounded-md shadow-sm -space-y-px">
+                            <div>
+                                <label for="skill-offer" class="block text-sm font-medium text-gray-700 mb-1">Skill I Master (Offer)</label>
+                                <input id="skill-offer" name="skill-offer" type="text" required class="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Advanced Excel Modeling">
+                            </div>
+                            <div class="pt-4">
+                                <label for="skill-want" class="block text-sm font-medium text-gray-700 mb-1">Skill I Want (Learn)</label>
+                                <input id="skill-want" name="skill-want" type="text" required class="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Beginner Python for Data">
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Save Profile & Find Match
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <main id="dashboard-page" class="page-content hidden">
+            <div class="container mx-auto max-w-4xl py-16 px-4">
+                <h2 class="text-3xl font-extrabold text-gray-900 text-center mb-12">
+                    Your Skill Dashboard
+                </h2>
+
+                <div id="loading-match" class="hidden text-center p-10 bg-white rounded-lg shadow-lg">
+                    <div class="flex justify-center items-center mb-4">
+                        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-xl font-medium text-gray-700">Searching for your "Perfect Match"...</p>
+                    <p class="text-gray-500">Scanning users who want <span class="font-bold text-gray-800" id="loading-offer"></span> and can teach <span class="font-bold text-gray-800" id="loading-want"></span>.</p>
+                </div>
+
+                <div id="match-found" class="hidden bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="p-8">
+                        <div class="text-center">
+                            <span class="inline-flex rounded-full bg-green-100 p-3">
+                                <i data-lucide="check" class="w-8 h-8 text-green-700"></i>
+                            </span>
+                            <h3 class="mt-4 text-2xl font-bold text-gray-900">We found a "Perfect Match"!</h3>
+                        </div>
+
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-b border-gray-200 py-6">
+                            <div class="text-center md:text-right">
+                                <img class="w-16 h-16 rounded-full mx-auto md:mr-0 md:ml-auto" src="https://placehold.co/100x100/E0E7FF/4F46E5?text=You" alt="Your Profile">
+                                <h4 class="mt-2 text-lg font-semibold">You</h4>
+                            </div>
+                            
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-500">You Offer</p>
+                                    <p class="font-semibold text-indigo-600" id="match-offer"></p>
+                                </div>
+                                <i data-lucide="arrow-right-left" class="text-gray-400 w-6 h-6"></i>
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-500">You Want</p>
+                                    <p class="font-semibold text-indigo-600" id="match-want"></p>
+                                </div>
+                            </div>
+
+                            <div class="text-center md:text-left">
+                                <img class="w-16 h-16 rounded-full mx-auto md:ml-0 md:mr-auto" src="https://placehold.co/100x100/FEE2E2/B91C1C?text=SK" alt="Match's Profile">
+                                <h4 id="match-partner-name" class="mt-2 text-lg font-semibold">Sarah K.</h4>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 sm:flex sm:justify-center sm:space-x-4">
+                            <button onclick="acceptMatch()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-6 py-3 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:w-auto sm:text-sm">
+                                Accept & Join Classroom
+                            </button>
+                            <button onclick="findMatch()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">
+                                Find a Different Match
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <main id="classroom-page" class="page-content hidden">
+            <div class="bg-gray-800 text-white">
+                <div class="container mx-auto max-w-full px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">
+                            <span class="relative flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                            <span class="ml-3 text-lg font-medium">LIVE SESSION:</span>
+                            <span id="session-title" class="ml-2 text-lg text-gray-300">Skill Exchange</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <i data-lucide="clock" class="w-5 h-5 text-gray-400"></i>
+                                <span id="session-timer" class="ml-2 font-mono">00:00</span>
+                            </div>
+                            <button onclick="showPage('rating-modal')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">
+                                <i data-lucide="phone-off" class="w-5 h-5 -ml-1 mr-2"></i>
+                                End Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-[calc(100vh-64px)] grid grid-cols-1 lg:grid-cols-4">
+                
+                <div class="lg:col-span-3 bg-gray-100 p-4 grid grid-rows-2 gap-4">
+                    
+                    <div class="row-span-1 bg-white rounded-lg shadow-md overflow-hidden p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Live Video/Audio Call</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[calc(100%-40px)]">
+                            <div class="relative bg-gray-900 rounded-lg flex items-center justify-center">
+                                <img src="https://placehold.co/600x400/E0E7FF/4F46E5?text=Your+Video" class="object-cover h-full w-full rounded-lg">
+                                <div id="video-user-label" class="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full">You (Teaching...)</div>
+                                <div class="absolute top-4 right-4 flex space-x-2">
+                                    <button class="p-2 bg-white bg-opacity-20 rounded-full text-white hover:bg-opacity-40"><i data-lucide="mic"></i></button>
+                                    <button class="p-2 bg-white bg-opacity-20 rounded-full text-white hover:bg-opacity-40"><i data-lucide="video"></i></button>
+                                </div>
+                            </div>
+                            <div class="relative bg-gray-900 rounded-lg flex items-center justify-center">
+                                <img src="https://placehold.co/600x400/FEE2E2/B91C1C?text=Partner's+Video" class="object-cover h-full w-full rounded-lg">
+                                <div id="video-partner-label" class="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full">Partner (Teaching...)</div>
+                                <div class="absolute top-4 right-4 flex space-x-2">
+                                    <button class="p-2 bg-white bg-opacity-70 rounded-full text-gray-800"><i data-lucide="mic-off"></i></button>
+                                    <button class="p-2 bg-white bg-opacity-20 rounded-full text-white hover:bg-opacity-40"><i data-lucide="video"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+                        <h3 class="text-lg font-semibold text-gray-900 p-4 border-b border-gray-200">Collaborative Whiteboard / Code Snippets</h3>
+                        <div class="flex-1 p-4">
+                            <textarea id="whiteboard" class="w-full h-full p-3 border border-gray-300 rounded-md resize-none font-mono text-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Type your code snippets or diagrams here. Both users will see this text live."></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-1 bg-white border-l border-gray-200 flex flex-col h-full">
+                    <h3 class="text-lg font-semibold text-gray-900 p-4 border-b border-gray-200">
+                        Persistent Chat
+                    </h3>
+                    
+                    <div id="chat-window" class="chat-window flex-1 p-4 space-y-4 overflow-y-auto">
+                    </div>
+
+                    <div class="p-4 border-t border-gray-200 bg-gray-50">
+                        <form class="flex space-x-3" onsubmit="event.preventDefault(); sendChatMessage();">
+                            <input id="chat-input" type="text" class="flex-1 block w-full px-4 py-2 border border-gray-300 rounded-full shadow-sm placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Type a message...">
+                            <button type="submit" class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-indigo-600 text-white hover:bg-indigo-700">
+                                <i data-lucide="send-horizontal" class="w-5 h-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="rating-modal" class="page-content hidden">
+            <div class="fixed z-50 inset-0 overflow-y-auto">
+                <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                    
+                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="sm:flex sm:items-start">
+                                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                                    <i data-lucide="star" class="h-6 w-6 text-green-600"></i>
+                                </div>
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <h3 class="text-2xl leading-6 font-bold text-gray-900" id="modal-title">
+                                        Session Complete!
+                                    </h3>
+                                    <div class="mt-4">
+                                        <p class="text-base text-gray-600">
+                                            Please review your exchange with <strong id="review-partner-name">your partner</strong> to build your mutual Trust Score.
+                                        </p>
+                                    </div>
+
+                                    <div class="mt-6">
+                                        <label class="block text-sm font-medium text-gray-700">How effective was the exchange?</label>
+                                        <div class="mt-2 flex items-center space-x-1" id="star-rating">
+                                            <button type="button" onclick="setRating(1)"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+                                            <button type="button" onclick="setRating(2)"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+                                            <button type="button" onclick="setRating(3)"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+                                            <button type="button" onclick="setRating(4)"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+                                            <button type="button" onclick="setRating(5)"><i data-lucide="star" class="w-8 h-8 text-gray-300 hover:text-yellow-400"></i></button>
+                                        </div>
+                                        <input type="hidden" id="rating-value" value="0">
+                                    </div>
+
+                                    <div class="mt-6">
+                                        <label for="review-text" class="block text-sm font-medium text-gray-700">Write a brief review (required)</label>
+                                        <div class="mt-1">
+                                            <textarea rows="4" name="review" id="review-text" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2" placeholder="e.g., 'Sarah was a great teacher! She explained Python loops clearly and was a quick learner with Excel.'"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6">
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="replay-consent" name="replay-consent" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="replay-consent" class="font-medium text-gray-700">I agree to save this session (chat and whiteboard) for review.</label>
+                                                <p class="text-gray-500">Your partner must also agree to access the replay.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <button onclick="submitReview()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm">
+                                Submit Review & Exit
+                            </button>
+                            <button onclick="skipReview()" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">
+                                Skip
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div> 
+    
+    <script>
+        // --- Icon Initialization ---
+        lucide.createIcons();
+
+        // --- === 2. INITIALIZE SOCKET.IO === ---
+        const socket = io(); // Connect to the server
+
+        // --- Global State (FIXED ORDER) ---
+        const API_URL = '/api'; 
+        let authToken = localStorage.getItem('skillswap_token') || null; 
+        let currentMatch = null;  
+        let userProfile = null;   
+        let currentRating = 0;
+        let sessionTimerInterval;
+        let sessionSeconds = 0;
+
+        // --- Page Navigation ---
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page-content'); // <-- FIX: Declared inside
+            pages.forEach(page => page.classList.add('hidden'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            } else {
+                console.error('Page not found:', pageId);
+                document.getElementById('landing-page').classList.remove('hidden');
+            }
+            window.scrollTo(0, 0);
+            if (pageId === 'classroom-page') startSessionTimer();
+            else stopSessionTimer();
+            if (pageId === 'rating-modal') resetRating();
+        }
+        
+        // --- Auth Page Logic ---
+        function showAuthTab(tabName) {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTabButton = document.getElementById('login-tab-button');
+            const signupTabButton = document.getElementById('signup-tab-button');
+            if (tabName === 'login') {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                loginTabButton.classList.add('text-indigo-600', 'border-indigo-600');
+                loginTabButton.classList.remove('text-gray-500', 'hover:text-gray-700');
+                signupTabButton.classList.add('text-gray-500', 'hover:text-gray-700');
+                signupTabButton.classList.remove('text-indigo-600', 'border-indigo-600');
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                signupTabButton.classList.add('text-indigo-600', 'border-indigo-600');
+                signupTabButton.classList.remove('text-gray-500', 'hover:text-gray-700');
+                loginTabButton.classList.add('text-gray-500', 'hover:text-gray-700');
+                loginTabButton.classList.remove('text-indigo-600', 'border-indigo-600');
+            }
+        }
+
+        // --- API Helper Function ---
+        async function fetchAPI(endpoint, options = {}) {
+            const headers = { 'Content-Type': 'application/json', ...options.headers };
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+            if (response.status === 401) {
+                logout();
+                throw new Error('Session expired. Please log in again.');
+            }
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `API error: ${response.status}`);
+            }
+            return data;
+        }
+
+        // --- Authentication Functions ---
+        async function loginUser() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const data = await fetchAPI('/auth/login', {
+                    method: 'POST', body: JSON.stringify({ email, password })
+                });
+                authToken = data.token;
+                localStorage.setItem('skillswap_token', authToken);
+                await checkUserProfile();
+            } catch (error) { console.error('Login error:', error); alert(`Error: ${error.message}`); }
+        }
+
+        async function signupUser() {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            if (password !== confirmPassword) { alert('Passwords do not match!'); return; }
+            try {
+                const data = await fetchAPI('/auth/signup', {
+                    method: 'POST', body: JSON.stringify({ email, password })
+                });
+                authToken = data.token;
+                localStorage.setItem('skillswap_token', authToken);
+                showPage('onboarding-page');
+            } catch (error) { console.error('Signup error:', error); alert(`Error: ${error.message}`); }
+        }
+
+        async function checkUserProfile() {
+            try {
+                const profile = await fetchAPI('/profile');
+                userProfile = profile; 
+                if (profile.offer && profile.want) { 
+                    showPage('dashboard-page');
+                    findMatch();
+                } else { showPage('onboarding-page'); }
+            } catch (error) {
+                console.log('No profile found, redirecting to onboarding.');
+                showPage('onboarding-page');
+            }
+        }
+
+        function logout() {
+            authToken = null; userProfile = null; currentMatch = null;
+            localStorage.removeItem('skillswap_token');
+            showPage('landing-page');
+        }
+
+        // --- Onboarding & Matching Logic ---
+        async function submitProfile() {
+            const skill_offer = document.getElementById('skill-offer').value;
+            const skill_want = document.getElementById('skill-want').value;
+            if (skill_offer.trim() === '' || skill_want.trim() === '') {
+                alert('Please fill out both skill fields before continuing.'); return; 
+            }
+            try {
+                const updatedProfile = await fetchAPI('/profile', {
+                    method: 'POST', body: JSON.stringify({ offer: skill_offer, want: skill_want })
+                });
+                userProfile = updatedProfile; 
+                showPage('dashboard-page');
+                findMatch(); 
+            } catch (error) { console.error('Profile update error:', error); alert(`Error: ${error.message}`); }
+        }
+
+        async function findMatch() {
+            if (!userProfile) { await checkUserProfile(); return; }
+            showPage('dashboard-page');
+            document.getElementById('loading-match').classList.remove('hidden');
+            document.getElementById('match-found').classList.add('hidden');
+            document.getElementById('loading-offer').textContent = userProfile.offer;
+            document.getElementById('loading-want').textContent = userProfile.want;
+            try {
+                const potentialMatches = await fetchAPI('/match/suggest');
+                if (!potentialMatches || potentialMatches.length === 0) {
+                    alert('No matches found right now. Try changing your skills!');
+                    document.getElementById('loading-match').classList.add('hidden');
+                    return;
+                }
+                const topMatch = potentialMatches[0];
+                currentMatch = {
+                    partnerName: topMatch.name,
+                    partnerId: topMatch.user_id,
+                    id: null, session_id: null
+                };
+                document.getElementById('loading-match').classList.add('hidden');
+                document.getElementById('match-found').classList.remove('hidden');
+                document.getElementById('match-offer').textContent = userProfile.offer;
+                document.getElementById('match-want').textContent = userProfile.want;
+                document.getElementById('match-partner-name').textContent = currentMatch.partnerName;
+                document.getElementById('session-title').textContent = `${userProfile.offer} <--> ${userProfile.want}`;
+                document.getElementById('video-user-label').textContent = `You (Teaching ${userProfile.offer})`;
+                document.getElementById('video-partner-label').textContent = `${currentMatch.partnerName} (Teaching ${userProfile.want})`;
+                document.getElementById('review-partner-name').textContent = currentMatch.partnerName;
+            } catch (error) { console.error('Matching error:', error); alert(`Error: ${error.message}`); document.getElementById('loading-match').classList.add('hidden'); }
+        }
+
+        async function acceptMatch() {
+            if (!currentMatch || !currentMatch.partnerId) { alert('Error: No match selected.'); return; }
+            try {
+                const matchDetails = await fetchAPI(`/match/${currentMatch.partnerId}/accept`, {
+                    method: 'POST'
+                });
+                currentMatch.id = matchDetails.id;
+                currentMatch.session_id = matchDetails.session_id;
+                console.log('Match accepted! Starting session:', matchDetails.session_id);
+                showPage('classroom-page');
+            } catch (error) { console.error('Accept match error:', error); alert(`Error: ${error.message}`); }
+        }
+
+        // --- Classroom Logic ---
+        function startSessionTimer() {
+            if (sessionTimerInterval) return;
+            sessionSeconds = 0;
+            const timerElement = document.getElementById('session-timer');
+            sessionTimerInterval = setInterval(() => {
+                sessionSeconds++;
+                const minutes = Math.floor(sessionSeconds / 60).toString().padStart(2, '0');
+                const seconds = (sessionSeconds % 60).toString().padStart(2, '0');
+                timerElement.textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function stopSessionTimer() {
+            clearInterval(sessionTimerInterval);
+            sessionTimerInterval = null;
+        }
+
+        // --- REAL CHAT FUNCTION ---
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const messageText = input.value.trim();
+            if (messageText === '') return;
+            const message = {
+                sender: "You", 
+                text: messageText,
+                timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            };
+            socket.emit('chat message', message);
+            input.value = '';
+        }
+
+        // --- CHAT LISTENER ---
+        socket.on('chat message', (msg) => {
+            const chatWindow = document.getElementById('chat-window');
+            const isSender = (msg.sender === "You"); 
+            const messageElement = document.createElement('div');
+            if (isSender) {
+                messageElement.className = 'flex justify-end';
+                messageElement.innerHTML = `
+                    <div>
+                        <div class="bg-indigo-600 text-white p-3 rounded-l-lg rounded-br-lg">
+                            <p class="text-sm">${msg.text}</p>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1 flex justify-end">${msg.sender} - ${msg.timestamp}</span>
+                    </div>
+                    <div class="flex-shrink-0 ml-3">
+                        <img class="w-8 h-8 rounded-full" src="https://placehold.co/100x100/E0E7FF/4F46E5?text=You" alt="You">
+                    </div>
+                `;
+            } else {
+                messageElement.className = 'flex';
+                messageElement.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                        <img class="w-8 h-8 rounded-full" src="https://placehold.co/100x100/FEE2E2/B91C1C?text=SK" alt="Partner">
+                    </div>
+                    <div>
+                        <div class="bg-gray-100 text-gray-800 p-3 rounded-r-lg rounded-bl-lg">
+                            <p class="text-sm">${msg.text}</p>
+                        </div>
+                        <span class="text-xs text-gray-500 mt-1">${currentMatch ? currentMatch.partnerName : 'Partner'} - ${msg.timestamp}</span>
+                    </div>
+                `;
+            }
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+
+
+        // --- FIXED RATING MODAL LOGIC ---
+        function setRating(stars) {
+            currentRating = stars;
+            document.getElementById('rating-value').value = stars;
+            const starIcons = document.querySelectorAll('#star-rating svg'); 
+            starIcons.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.remove('text-gray-300');
+                    star.classList.add('text-yellow-400');
+                    star.setAttribute('fill', 'currentColor');
+                } else {
+                    star.classList.add('text-gray-300');
+                    star.classList.remove('text-yellow-400');
+                    star.setAttribute('fill', 'none');
+                }
+            });
+        }
+
+        function resetRating() {
+            setRating(0); 
+            document.getElementById('review-text').value = '';
+            document.getElementById('replay-consent').checked = false;
+        }
+
+        async function submitReview() {
+            const review_text = document.getElementById('review-text').value;
+            const rating = currentRating;
+            const consent = document.getElementById('replay-consent').checked; 
+            if (rating === 0 || review_text.trim() === '') {
+                alert('Please select a rating and write a review before submitting.'); return;
+            }
+            try {
+                await fetchAPI('/review', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        match_id: currentMatch.id, to_user: currentMatch.partnerId,
+                        rating: rating, comment: review_text
+                    })
+                });
+                await fetchAPI(`/replay/${currentMatch.session_id}/consent`, {
+                    method: 'POST', body: JSON.stringify({ allow: consent })
+                });
+                alert('Thank you for your review!');
+                skipReview(); 
+            } catch (error) { console.error('Review submission error:', error); alert(`Error: ${error.message}`); }
+        }
+
+        function skipReview() {
+            showPage('dashboard-page');
+            document.getElementById('match-found').classList.add('hidden');
+            findMatch(); 
+        }
+
+        // --- Initial Page Load ---
+        function initializeApp() {
+            if (authToken) {
+                console.log('Token found, checking profile...');
+                checkUserProfile();
+            } else {
+                console.log('No token, showing landing page.');
+                showPage('landing-page');
+            }
+        }
+        initializeApp(); 
+    </script>
+</body>
+</html>
